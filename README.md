@@ -5,4 +5,4 @@ This project contains implementations of `at.o2xfs.memory.databind.ReadableMemor
 
 ## Code Status
 
-[![Build Status](https://api.travis-ci.org/AndreasFagschlunger/o2xfs-memory-impl.svg?branch=develop)](https://travis-ci.org/AndreasFagschlunger/o2xfs-memory-impl)
+[![Build Status](https://api.travis-ci.com/AndreasFagschlunger/o2xfs-memory-impl.svg?branch=develop)](https://travis-ci.com/AndreasFagschlunger/o2xfs-memory-impl)

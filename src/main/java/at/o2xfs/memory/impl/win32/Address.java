@@ -13,11 +13,11 @@ public final class Address {
 		if (value.length == 0) {
 			throw new IllegalArgumentException("value must not be empty");
 		}
-		this.value = value;
+		this.value = value.clone();
 	}
 
 	public byte[] getValue() {
-		return value;
+		return value.clone();
 	}
 
 	@Override
