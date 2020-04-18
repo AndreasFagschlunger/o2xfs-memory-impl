@@ -1,32 +1,21 @@
 package at.o2xfs.memory.impl.win32;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import at.o2xfs.common.Bits;
-import at.o2xfs.common.ByteArrayBuffer;
-import at.o2xfs.common.Hex;
-import at.o2xfs.memory.databind.ReadableMemory;
+import at.o2xfs.memory.core.Address;
+import at.o2xfs.memory.core.BaseReadableMemory;
 
-public final class Win32Memory implements ReadableMemory {
+public final class Win32Memory extends BaseReadableMemory {
 
+	private final Win32MemorySystem memorySystem;
 	private final Address address;
 	private int offset = 0;
 
-	Win32Memory(Address address) {
+	Win32Memory(Win32MemorySystem memorySystem, Address address) {
+		this.memorySystem = Objects.requireNonNull(memorySystem, "memorySystem must not be null");
 		this.address = Objects.requireNonNull(address, "address must not be null");
-	}
-
-	private boolean isNull(Address address) {
-		byte[] value = address.getValue();
-		for (int i = 0; i < value.length; i++) {
-			if (value[i] != 0) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public Address getAddress() {
@@ -38,42 +27,22 @@ public final class Win32Memory implements ReadableMemory {
 	}
 
 	@Override
-	public String nextString() {
-		ByteArrayBuffer buffer = new ByteArrayBuffer(32);
-		do {
-			buffer.append(read(1));
-		} while (buffer.byteAt(buffer.length() - 1) != 0);
-		return new String(buffer.buffer(), 0, buffer.length() - 1, StandardCharsets.US_ASCII);
-	}
-
-	@Override
-	public long nextUnsignedLong() {
-		return Bits.getInt(read(Integer.BYTES)) & 0xffffffff;
-	}
-
-	@Override
-	public int nextUnsignedShort() {
-		return Bits.getShort(read(Short.BYTES)) & 0xffff;
+	public Address nextAddress() {
+		return Win32Address.build(read(address.getValue().length));
 	}
 
 	@Override
 	public Win32Memory nextReference() {
-		Address reference = Address.build(read(address.getValue().length));
-		if (isNull(reference)) {
+		Address reference = nextAddress();
+		if (Win32MemorySystem.NULL.equals(reference)) {
 			return null;
 		}
-		return new Win32Memory(reference);
-	}
-
-	public void free() {
-		Win32MemorySystem.INSTANCE.free(this);
+		return new Win32Memory(memorySystem, reference);
 	}
 
 	@Override
 	public byte[] read(int length) {
-		System.out.print(getAddress() + ": ");
-		byte[] result = Win32MemorySystem.INSTANCE.read(this, length);
-		System.out.println(Hex.encode(result));
+		byte[] result = memorySystem.read(address, offset, length);
 		offset += length;
 		return result;
 	}
